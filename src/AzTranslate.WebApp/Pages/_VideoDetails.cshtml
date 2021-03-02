@@ -1,0 +1,15 @@
+﻿@model AzTranslate.Services.Dtos.YouTubeVideoDto
+
+<div class="flex-row">
+    <div class="card" style="width: 50%;">
+        <div class="card-header"><b>@Model.YouTubeVideoInfo.Title</b></div>
+        <div class="card-body">
+            <p><b>Author:</b> @Model.YouTubeVideoInfo.Author</p>
+            <p><b>Duration:</b> @TimeSpan.FromSeconds(Model.YouTubeVideoInfo.LengthSeconds.Value).ToString()</p>
+            <p><b>Resolution:</b> @(Model.YouTubeVideoInfo.Resolution)p</p>
+            <div class="embed-responsive embed-responsive-16by9">
+                <iframe class="embed-responsive-item" src="@Model.YouTubeEmbedVideo" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,24 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+
+<div class="text-center">
+    <h1 class="display-4">AzTranslate</h1>
+    <p><a href="https://docs.microsoft.com/aspnet/core">AzTranslate</a> is an application to translate your YouTube videos.</p>
+</div>
+
+<form method="post" asp-page-handler="">
+    <div class="form-group">
+        <label asp-for="YouTubeUrl" class="col-form-label"></label>
+        <input asp-for="YouTubeUrl" class="form-control" />
+        <span asp-validation-for="YouTubeUrl" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary mb-2">Submit</button>
+</form>
+
+@if (Model.Video != null)
+{
+    <partial name="_VideoDetails" model="Model.Video" />
+}
