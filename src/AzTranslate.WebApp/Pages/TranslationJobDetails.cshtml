@@ -1,0 +1,19 @@
+﻿@page
+@model AzTranslate.WebApp.Pages.TranslationJobDetailsModel
+@{
+}
+
+<div class="row">
+    <div class="col">
+        <div class="form-floating">
+            <textarea class="form-control" asp-for="OriginalText" style="height: 100px"></textarea>
+            <label for="floatingTextarea2">Original Text</label>
+        </div>
+    </div>
+    <div class="col">
+        <div class="form-floating">
+            <textarea class="form-control" asp-for="TranslatedText" style="height: 100px"></textarea>
+            <label for="floatingTextarea2">Translated Text</label>
+        </div>
+    </div>
+</div>

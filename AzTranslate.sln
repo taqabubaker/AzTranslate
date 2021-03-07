@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30907.101
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzTranslate.Services", "src\AzTranslate.Services\AzTranslate.Services.csproj", "{3371E903-6A8F-4413-B042-99A1402512A8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzTranslate.Services", "src\AzTranslate.Services\AzTranslate.Services.csproj", "{3371E903-6A8F-4413-B042-99A1402512A8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzTranslate.WebApp", "src\AzTranslate.WebApp\AzTranslate.WebApp.csproj", "{F0A087B1-9FFE-49A7-A801-10EF48042E7B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzTranslate.WebApp", "src\AzTranslate.WebApp\AzTranslate.WebApp.csproj", "{F0A087B1-9FFE-49A7-A801-10EF48042E7B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

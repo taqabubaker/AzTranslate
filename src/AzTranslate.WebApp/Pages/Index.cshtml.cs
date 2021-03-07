@@ -9,6 +9,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using VideoLibrary;
 
 namespace AzTranslate.WebApp.Pages
 {
@@ -69,6 +70,16 @@ namespace AzTranslate.WebApp.Pages
                 }).ToList();
 
             return Page();
+        }
+
+        public IActionResult OnPostTranslateAsync()
+        {
+            return RedirectToPage("TranslationJobDetails", new 
+            {
+                youTubeUrl = YouTubeUrl,
+                fromLanguage = TranslateFrom,
+                toLanguages = TranslateTo
+            });
         }
     }
 }
