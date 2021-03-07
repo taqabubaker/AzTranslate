@@ -1,0 +1,18 @@
+﻿@model IEnumerable<AzTranslate.Services.Dtos.YouTubeAudioDto>
+
+<div class="card">
+    <div class="card-header"><b>Audio Details</b></div>
+    <div class="card-body">
+        <p><b>Title:</b> @Model.FirstOrDefault().YouTubeAudioInfo.Title</p>
+        <p><b>Author:</b> @Model.FirstOrDefault().YouTubeAudioInfo.Author</p>
+        <p><b>Duration:</b> @TimeSpan.FromSeconds(Model.FirstOrDefault().YouTubeAudioInfo.LengthSeconds.Value).ToString()</p>
+        <p><b>Bit Rate:</b> @(Model.FirstOrDefault().YouTubeAudioInfo.AudioBitrate) Kbit/s</p>
+        <audio controls style="width:100%;">
+            @foreach (var audio in Model)
+            {
+                <source src="@audio.YouTubeAudio.Uri" type="audio/@audio.YouTubeAudio.AudioFormat">
+            }
+            Your browser does not support the audio element.
+        </audio>
+    </div>
+</div>

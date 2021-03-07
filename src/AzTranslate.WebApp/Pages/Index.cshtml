@@ -18,7 +18,53 @@
     <button type="submit" class="btn btn-primary mb-2">Submit</button>
 </form>
 
-@if (Model.Video != null)
-{
-    <partial name="_VideoDetails" model="Model.Video" />
-}
+<form method="post" asp-page-handler="">
+    <div class="row mb-2">
+        @if (Model.Video != null)
+        {
+            <div class="col">
+                <partial name="_VideoDetails" model="Model.Video" />
+            </div>
+        }
+
+        @if (Model.Audios != null && Model.Audios.Count() > 0)
+        {
+            <div class="col">
+                <partial name="_AudioDetails" model="Model.Audios" />
+            </div>
+        }
+    </div>
+
+    @if (Model.SpeachLanguages != null && Model.TranslationLanguages != null)
+    {
+        <div class="card">
+            <div class="card-body">
+
+                <div class="form-group row">
+                    <div class="col-6">
+                        <label asp-for="TranslateFrom" class="col-form-label"></label>
+                        <select asp-for="TranslateFrom" class="form-control form-select selectpicker"
+                                data-live-search="true" title="--Select language--">
+                            @foreach (var lang in Model.SpeachLanguages)
+                            {
+                                <option value="@lang.Value" data-tokens="@lang.Value">@lang.Text</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <label asp-for="TranslateTo" class="col-form-label"></label>
+                        <select asp-for="TranslateTo" class="form-control form-select selectpicker"
+                                data-live-search="true" data-actions-box="true" title="--Select language(s)--">
+                            @foreach (var lang in Model.TranslationLanguages)
+                            {
+                                <option value="@lang.Value" data-tokens="@lang.Value">@lang.Text</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <span asp-validation-for="TranslateFrom" class="text-danger"></span>
+                <button type="submit" class="btn btn-primary mb-2">Translate</button>
+            </div>
+        </div>
+    }
+</form>

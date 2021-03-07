@@ -28,6 +28,7 @@ namespace AzTranslate.WebApp
             services.AddRazorPages();
             services.AddTransient<YouTube>((p) => YouTube.Default);
             services.AddTransient<IYouTubeServices, YouTubeServices>();
+            services.AddTransient<ISpeechServices, SpeechServices>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
