@@ -3,17 +3,40 @@
 @{
 }
 
-<div class="row">
+<div class="row mb-3">
     <div class="col">
-        <div class="form-floating">
-            <textarea class="form-control" asp-for="OriginalText" style="height: 100px"></textarea>
-            <label for="floatingTextarea2">Original Text</label>
-        </div>
-    </div>
-    <div class="col">
-        <div class="form-floating">
-            <textarea class="form-control" asp-for="TranslatedText" style="height: 100px"></textarea>
-            <label for="floatingTextarea2">Translated Text</label>
+        <div class="card">
+            <div class="card-header"><b>Log</b></div>
+            <div class="card-body pre-scrollable">
+                <ol id="logList" class="list-unstyled">
+                </ol>
+            </div>
         </div>
     </div>
 </div>
+
+<div class="row">
+    <div class="col">
+        <div class="card">
+            <div class="card-header"><b>Recognized Speech (@Model.FromLanguage)</b></div>
+            <div class="card-body pre-scrollable">
+                <ol id="transcriptList" class="list-unstyled">
+                </ol>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card">
+            <div class="card-header"><b>Translated Speech (@Model.ToLanguages)</b></div>
+            <div class="card-body pre-scrollable">
+                <ol id="translationList" class="list-unstyled">
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script src="~/lib/microsoft/signalr/dist/browser/signalr.js"></script>
+    <script src="~/js/translate.js"></script>
+}

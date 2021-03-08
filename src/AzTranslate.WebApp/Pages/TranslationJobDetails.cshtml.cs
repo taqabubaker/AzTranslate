@@ -4,8 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AzTranslate.Services;
+using AzTranslate.WebApp.Hubs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using VideoLibrary;
 
@@ -13,38 +15,62 @@ namespace AzTranslate.WebApp.Pages
 {
     public class TranslationJobDetailsModel : PageModelBase<TranslationJobDetailsModel>
     {
-        public string OriginalText { get; set; }
-        public string TranslatedText { get; set; }
+        public string FromLanguage { get; set; }
+        public string ToLanguages { get; set; }
+        private readonly IHubContext<TranslationHub> hubContext;
 
-        public TranslationJobDetailsModel(IYouTubeServices youTubeServices, ISpeechServices speechServices, ILogger<TranslationJobDetailsModel> logger) 
+        public TranslationJobDetailsModel(IYouTubeServices youTubeServices, ISpeechServices speechServices, 
+            ILogger<TranslationJobDetailsModel> logger, IHubContext<TranslationHub> hubContext)
             : base(youTubeServices, speechServices, logger)
         {
+            this.hubContext = hubContext;
         }
 
         public async Task<IActionResult> OnGetAsync(string youTubeUrl, string fromLanguage, IEnumerable<string> toLanguages)
         {
+            FromLanguage = fromLanguage;
+            ToLanguages = toLanguages.FirstOrDefault();
+
             var org = new StringBuilder();
             var trn = new StringBuilder();
 
-            //TO DO: Subscribe to all events to know when the translation finishes.
-            //TO DO: Implement SignalR to send translation realtime feed
-
-            speechServices.SpeechSessionStarted += (s, e) =>
+            speechServices.SpeechSessionStarted += async (s, e) =>
             {
+                await hubContext.Clients.All.SendAsync("ReceiveLog", e.Information);
             };
 
-            speechServices.SpeechRecognized += (s, e) =>
+            speechServices.SpeechSessionStopped += async (s, e) =>
+            {
+                await hubContext.Clients.All.SendAsync("ReceiveLog", e.Information);
+            };
+
+            speechServices.SpeechCanceled += async (s, e) =>
+            {
+                await hubContext.Clients.All.SendAsync("ReceiveLog", e.Information);
+            };
+
+            speechServices.SpeechEndDetected += async (s, e) =>
+            {
+                await hubContext.Clients.All.SendAsync("ReceiveLog", e.Information);
+            };
+
+            speechServices.SpeechStartDetected += async (s, e) =>
+            {
+                await hubContext.Clients.All.SendAsync("ReceiveLog", e.Information);
+            };
+
+            speechServices.SpeechRecognized += async (s, e) =>
             {
                 org.AppendLine(e.OriginalTranscriptLine);
                 trn.AppendLine(e.TranslationTranscriptLine);
+
+                await hubContext.Clients.All.SendAsync("ReceiveTranscript", e.OriginalTranscriptLine);
+                await hubContext.Clients.All.SendAsync("ReceiveTranslation", e.TranslationTranscriptLine);
             };
 
             var video = await youTubeServices.GetVideoAsync(youTubeUrl);
 
             _ = speechServices.TranslateAsync(video.YouTubeVideo, fromLanguage, toLanguages);
-
-            OriginalText = org.ToString();
-            TranslatedText = trn.ToString();
 
             return Page();
         }
