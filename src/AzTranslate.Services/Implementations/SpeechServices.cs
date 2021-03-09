@@ -1,6 +1,7 @@
 ﻿using Microsoft.CognitiveServices.Speech;
 using Microsoft.CognitiveServices.Speech.Audio;
 using Microsoft.CognitiveServices.Speech.Translation;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -15,12 +16,19 @@ namespace AzTranslate.Services
 {
     public class SpeechServices : ISpeechServices
     {
+        private readonly IConfiguration configuration;
+
         public event EventHandler<SpeechServicesEventArgs> SpeechRecognized;
         public event EventHandler<SpeechServicesEventArgs> SpeechStartDetected;
         public event EventHandler<SpeechServicesEventArgs> SpeechEndDetected;
         public event EventHandler<SpeechServicesEventArgs> SpeechSessionStarted;
         public event EventHandler<SpeechServicesEventArgs> SpeechSessionStopped;
         public event EventHandler<SpeechServicesEventArgs> SpeechCanceled;
+
+        public SpeechServices(IConfiguration configuration)
+        {
+            this.configuration = configuration;
+        }
 
         public IDictionary<string, string> GetSpeechSupportedLanguages()
         {
@@ -211,7 +219,8 @@ namespace AzTranslate.Services
             var info = new StringBuilder();
             var speechServicesEventArgs = new SpeechServicesEventArgs();
 
-            var config = SpeechTranslationConfig.FromSubscription("6e2b02facce94cdc9af14dcced9bcc41", "westeurope");
+            var config = SpeechTranslationConfig.FromSubscription(
+                configuration["AzureSpeechTranslation:SubscriptionKey"], configuration["AzureSpeechTranslation:Region"]);
             config.SpeechRecognitionLanguage = fromLanguage;
 
             foreach (var language in toLanguages)
