@@ -36,27 +36,27 @@ namespace AzTranslate.WebApp.Pages
 
             speechServices.SpeechSessionStarted += async (s, e) =>
             {
-                await hubContext.Clients.All.SendAsync("ReceiveLog", e.Information);
+                await hubContext.Clients.All.SendAsync("ReceiveMessage", "logList", e.Information);
             };
 
             speechServices.SpeechSessionStopped += async (s, e) =>
             {
-                await hubContext.Clients.All.SendAsync("ReceiveLog", e.Information);
+                await hubContext.Clients.All.SendAsync("ReceiveMessage", "logList", e.Information);
             };
 
             speechServices.SpeechCanceled += async (s, e) =>
             {
-                await hubContext.Clients.All.SendAsync("ReceiveLog", e.Information);
+                await hubContext.Clients.All.SendAsync("ReceiveMessage", "logList", e.Information);
             };
 
             speechServices.SpeechEndDetected += async (s, e) =>
             {
-                await hubContext.Clients.All.SendAsync("ReceiveLog", e.Information);
+                await hubContext.Clients.All.SendAsync("ReceiveMessage", "logList", e.Information);
             };
 
             speechServices.SpeechStartDetected += async (s, e) =>
             {
-                await hubContext.Clients.All.SendAsync("ReceiveLog", e.Information);
+                await hubContext.Clients.All.SendAsync("ReceiveMessage", "logList", e.Information);
             };
 
             speechServices.SpeechRecognized += async (s, e) =>
@@ -64,8 +64,8 @@ namespace AzTranslate.WebApp.Pages
                 org.AppendLine(e.OriginalTranscriptLine);
                 trn.AppendLine(e.TranslationTranscriptLine);
 
-                await hubContext.Clients.All.SendAsync("ReceiveTranscript", e.OriginalTranscriptLine);
-                await hubContext.Clients.All.SendAsync("ReceiveTranslation", e.TranslationTranscriptLine);
+                await hubContext.Clients.All.SendAsync("ReceiveMessage", "transcriptList", e.OriginalTranscriptLine);
+                await hubContext.Clients.All.SendAsync("ReceiveMessage", "translationList", e.TranslationTranscriptLine);
             };
 
             var video = await youTubeServices.GetVideoAsync(youTubeUrl);

@@ -9,8 +9,5 @@ namespace AzTranslate.WebApp.Hubs
 {
     public class TranslationHub : Hub
     {
-        public void StartTranslation()
-        {            
-        }
     }
 }
