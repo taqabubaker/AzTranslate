@@ -11,6 +11,8 @@ namespace AzTranslate.Services
     {
         IDictionary<string, string> GetSpeechSupportedLanguages();
         IDictionary<string, string> GetTranslationSupportedLanguages();
+        string GetSpeechLanguageNameByCode(string languageCode);
+        string GetTranslationLanguageNameByCode(string languageCode);
         Task TranslateAsync(YouTubeVideo youTubeVideo, string fromLanguage, IEnumerable<string> toLanguages);
 
         event EventHandler<SpeechServicesEventArgs> SpeechRecognized;
