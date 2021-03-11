@@ -209,15 +209,30 @@ namespace AzTranslate.Services
             };
         }
 
+        public string GetSpeechLanguageNameByCode(string languageCode)
+        {
+            return GetSpeechSupportedLanguages()
+                .FirstOrDefault(language => language.Key == languageCode)
+                .Value;
+        }
+
+        public string GetTranslationLanguageNameByCode(string languageCode)
+        {
+            return GetTranslationSupportedLanguages()
+                .FirstOrDefault(language => language.Key == languageCode)
+                .Value;
+        }
+
         public async Task TranslateAsync(YouTubeVideo youTubeVideo, string fromLanguage, IEnumerable<string> toLanguages)
         {
-            var downloadFilePath = @"Output\input.mp4";
-            var transcriptFilePaths = new List<string>();
-            var originalFilePath = @"Output\original.srt";
+            // Declare the necessary directories and files variables
+            var outputPath = Path.Combine("Output", Guid.NewGuid().ToString());
+            var downloadFilePath = Path.Combine(outputPath, "input.mp4");
+
+            // StringBuilders for data to be passed to event subscriber
             var tsb = new StringBuilder();
             var osb = new StringBuilder();
             var info = new StringBuilder();
-            var speechServicesEventArgs = new SpeechServicesEventArgs();
 
             var config = SpeechTranslationConfig.FromSubscription(
                 configuration["AzureSpeechTranslation:SubscriptionKey"], configuration["AzureSpeechTranslation:Region"]);
@@ -226,13 +241,17 @@ namespace AzTranslate.Services
             foreach (var language in toLanguages)
             {
                 config.AddTargetLanguage(language);
-                transcriptFilePaths.Add($@"Output\transcript_{language}.srt");
             }
 
-            Housekeeping();
-
             var vidBytes = await youTubeVideo.GetBytesAsync();
+
+            // Before saving the video, create the directory
+            CreateOutputDirectory(outputPath);
+
+            // Save the video
             await File.WriteAllBytesAsync(downloadFilePath, vidBytes);
+
+            // Extract the audio from the video to work on it
             var wavAudioFile = await ExtractingWavAudioAsync(downloadFilePath);
 
             var stopTranslation = new TaskCompletionSource<int>();
@@ -243,7 +262,7 @@ namespace AzTranslate.Services
                 using (var recognizer = new TranslationRecognizer(config, audioInput))
                 {
                     // Subscribes to events.
-                    recognizer.Recognized += async (s, e) =>
+                    recognizer.Recognized += (s, e) =>
                     {
                         if (e.Result.Reason == ResultReason.TranslatedSpeech)
                         {
@@ -257,47 +276,34 @@ namespace AzTranslate.Services
                                 osb.AppendLine(e.Result.Text);
                                 osb.AppendLine();
 
-                                tsb.AppendLine($"{lineCount++}");
+                                tsb.AppendLine($"{lineCount}");
                                 tsb.AppendLine($"{fromTime.ToString(@"hh\:mm\:ss\.fff")} --> {toTime.ToString(@"hh\:mm\:ss\.fff")}");
                                 tsb.AppendLine(element.Value);
                                 tsb.AppendLine();
 
-                                var transcriptFilePath = transcriptFilePaths.FirstOrDefault(x =>
-                                x.Split('_', '.')
-                                .Any(x => 
-                                x == element.Key));
-
-                                speechServicesEventArgs.OriginalTranscriptLine = osb.ToString();
-                                speechServicesEventArgs.TranslationTranscriptLine = tsb.ToString();
-                                speechServicesEventArgs.Information = string.Empty;
-
-                                await File.AppendAllTextAsync(originalFilePath, speechServicesEventArgs.OriginalTranscriptLine);
-                                await File.AppendAllTextAsync(transcriptFilePath, speechServicesEventArgs.TranslationTranscriptLine);
-
+                                var speechServicesEventArgs = SetSpeechServicesInformationArgs(fromLanguage, element.Key,
+                                    osb.ToString(), tsb.ToString());
                                 osb.Clear();
                                 tsb.Clear();
 
                                 SpeechRecognized?.Invoke(this, speechServicesEventArgs);
                             }
+
+                            lineCount++;
                         }
                         else if (e.Result.Reason == ResultReason.RecognizedSpeech)
                         {
                             info.AppendLine($"RECOGNIZED: Text={e.Result.Text}");
                             info.AppendLine($"    Speech not translated.");
-
-                            speechServicesEventArgs.OriginalTranscriptLine = string.Empty;
-                            speechServicesEventArgs.TranslationTranscriptLine = string.Empty;
-                            speechServicesEventArgs.Information = info.ToString();
-
+                            var speechServicesEventArgs = SetSpeechServicesInformationArgs(fromLanguage, information: info.ToString());
                             info.Clear();
+
                             SpeechRecognized?.Invoke(this, speechServicesEventArgs);
                         }
                         else if (e.Result.Reason == ResultReason.NoMatch)
                         {
                             info.AppendLine($"NOMATCH: Speech could not be recognized.");
-                            speechServicesEventArgs.OriginalTranscriptLine = string.Empty;
-                            speechServicesEventArgs.TranslationTranscriptLine = string.Empty;
-                            speechServicesEventArgs.Information = info.ToString();
+                            var speechServicesEventArgs = SetSpeechServicesInformationArgs(fromLanguage, information: info.ToString());
                             info.Clear();
 
                             SpeechRecognized?.Invoke(this, speechServicesEventArgs);
@@ -315,9 +321,7 @@ namespace AzTranslate.Services
                             info.AppendLine($"CANCELED: Did you update the subscription info?");
                         }
 
-                        speechServicesEventArgs.OriginalTranscriptLine = string.Empty;
-                        speechServicesEventArgs.TranslationTranscriptLine = string.Empty;
-                        speechServicesEventArgs.Information = info.ToString();
+                        var speechServicesEventArgs = SetSpeechServicesInformationArgs(fromLanguage, information: info.ToString());
                         info.Clear();
 
                         SpeechCanceled?.Invoke(this, speechServicesEventArgs);
@@ -327,53 +331,44 @@ namespace AzTranslate.Services
                     recognizer.SpeechStartDetected += (s, e) =>
                     {
                         info.AppendLine("Speech start detected event.");
-                        speechServicesEventArgs.OriginalTranscriptLine = string.Empty;
-                        speechServicesEventArgs.TranslationTranscriptLine = string.Empty;
-                        speechServicesEventArgs.Information = info.ToString();
+                        var speechServicesEventArgs = SetSpeechServicesInformationArgs(fromLanguage, information: info.ToString());
+                        info.Clear();
 
                         SpeechStartDetected?.Invoke(this, speechServicesEventArgs);
-                        info.Clear();
                     };
 
                     recognizer.SpeechEndDetected += (s, e) =>
                     {
                         info.AppendLine("Speech end detected event.");
-                        speechServicesEventArgs.OriginalTranscriptLine = string.Empty;
-                        speechServicesEventArgs.TranslationTranscriptLine = string.Empty;
-                        speechServicesEventArgs.Information = info.ToString();
+                        var speechServicesEventArgs = SetSpeechServicesInformationArgs(fromLanguage, information: info.ToString());
+                        info.Clear();
 
                         SpeechEndDetected?.Invoke(this, speechServicesEventArgs);
-                        info.Clear();
                     };
 
                     recognizer.SessionStarted += (s, e) =>
                     {
                         info.AppendLine("Start translation...");
                         info.AppendLine("Session started event.");
-                        speechServicesEventArgs.OriginalTranscriptLine = string.Empty;
-                        speechServicesEventArgs.TranslationTranscriptLine = string.Empty;
-                        speechServicesEventArgs.Information = info.ToString();
+                        var speechServicesEventArgs = SetSpeechServicesInformationArgs(fromLanguage, information: info.ToString());
+                        info.Clear();
 
                         SpeechSessionStarted?.Invoke(this, speechServicesEventArgs);
-                        info.Clear();
                     };
 
                     recognizer.SessionStopped += (s, e) =>
                     {
                         info.AppendLine("Session stopped event.");
                         info.AppendLine("Stop translation.");
-                        speechServicesEventArgs.OriginalTranscriptLine = string.Empty;
-                        speechServicesEventArgs.TranslationTranscriptLine = string.Empty;
-                        speechServicesEventArgs.Information = info.ToString();
-
+                        var speechServicesEventArgs = SetSpeechServicesInformationArgs(fromLanguage, information: info.ToString());
+                        info.Clear();
 
                         SpeechSessionStopped?.Invoke(this, speechServicesEventArgs);
-                        info.Clear();
+
                         stopTranslation.TrySetResult(0);
                     };
 
                     // Starts continuous recognition. Uses StopContinuousRecognitionAsync() to stop recognition.
-
                     await recognizer.StartContinuousRecognitionAsync().ConfigureAwait(false);
 
                     // Waits for completion.
@@ -384,19 +379,17 @@ namespace AzTranslate.Services
                     await recognizer.StopContinuousRecognitionAsync().ConfigureAwait(false);
                 }
             }
+
+            //Housekeeping
+            Directory.Delete(outputPath, true);
         }
 
-
-        private void Housekeeping()
+        private void CreateOutputDirectory(string outputPath)
         {
-            var dirInfo = Directory.CreateDirectory("Output");
+            var dirInfo = Directory.CreateDirectory(outputPath);
             dirInfo.Attributes = FileAttributes.Normal;
-
-            foreach (var file in dirInfo.GetFiles())
-            {
-                File.Delete(file.FullName);
-            }
         }
+
         private async Task<string> ExtractingWavAudioAsync(string file)
         {
             string output = Path.ChangeExtension(Path.GetFullPath(file), "wav");
@@ -405,6 +398,19 @@ namespace AzTranslate.Services
 
             return output;
         }
+
+        private SpeechServicesEventArgs SetSpeechServicesInformationArgs(string originalLanguage, string translationLanguage = "",
+            string originalTranscriptLine = "", string translationTranscriptLine = "", string information = "")
+        {
+            return new SpeechServicesEventArgs()
+            {
+                OriginalTranscriptLine = originalTranscriptLine,
+                TranslationTranscriptLine = translationTranscriptLine,
+                OriginalLanguage = originalLanguage,
+                TranslationLanguage = translationLanguage,
+                Information = information
+            };
+        }
     }
 
     public class SpeechServicesEventArgs : EventArgs
@@ -412,5 +418,7 @@ namespace AzTranslate.Services
         public string OriginalTranscriptLine { get; set; }
         public string TranslationTranscriptLine { get; set; }
         public string Information { get; set; }
+        public string TranslationLanguage { get; set; }
+        public string OriginalLanguage { get; set; }
     }
 }

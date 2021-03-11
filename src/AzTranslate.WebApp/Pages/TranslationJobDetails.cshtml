@@ -16,30 +16,34 @@
 </div>
 
 <div class="row">
-    <div class="col">
+    <div class="col-6 mb-3">
         <div class="card">
             <div class="card-header">
-                <b>Recognized Speech (@Model.FromLanguage)</b>
-                <input type="button" value="Download" class="btn btn-primary float-right" onclick="saveFile('transcriptList')" />
+                <b>Recognized Speech - @Model.WorkingLanguages.FirstOrDefault().Value</b>
+                <input type="button" value="Download" class="btn btn-primary float-right" onclick="saveFile('transcript-list')" />
             </div>
             <div class="card-body pre-scrollable">
-                <ol id="transcriptList" class="list-unstyled">
+                <ol id="transcript-list" class="list-unstyled">
                 </ol>
             </div>
         </div>
     </div>
-    <div class="col">
-        <div class="card">
-            <div class="card-header">
-                <b>Translated Speech (@Model.ToLanguages)</b>
-                <input type="button" value="Download" class="btn btn-primary float-right" onclick="saveFile('translationList')" />
-            </div>
-            <div class="card-body pre-scrollable">
-                <ol id="translationList" class="list-unstyled">
-                </ol>
+    @foreach (var toLanguage in Model.WorkingLanguages.Skip(1))
+    {
+        <div class="col-6 mb-2">
+            <div class="card">
+                <div class="card-header">
+                    <b>Translated Speech - @toLanguage.Value</b>
+                    <input type="button" value="Download" class="btn btn-primary float-right" 
+                           onclick="saveFile('@($"translation-{toLanguage.Key.ToLower()}-list")')" />
+                </div>
+                <div class="card-body pre-scrollable">
+                    <ol id="@($"translation-{toLanguage.Key.ToLower()}-list")" class="list-unstyled">
+                    </ol>
+                </div>
             </div>
         </div>
-    </div>
+    }
 </div>
 
 @section Scripts{

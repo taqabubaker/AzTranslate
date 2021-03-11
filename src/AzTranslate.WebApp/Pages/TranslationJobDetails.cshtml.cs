@@ -15,11 +15,10 @@ namespace AzTranslate.WebApp.Pages
 {
     public class TranslationJobDetailsModel : PageModelBase<TranslationJobDetailsModel>
     {
-        public string FromLanguage { get; set; }
-        public string ToLanguages { get; set; }
+        public Dictionary<string, string> WorkingLanguages { get; set; }
         private readonly IHubContext<TranslationHub> hubContext;
 
-        public TranslationJobDetailsModel(IYouTubeServices youTubeServices, ISpeechServices speechServices, 
+        public TranslationJobDetailsModel(IYouTubeServices youTubeServices, ISpeechServices speechServices,
             ILogger<TranslationJobDetailsModel> logger, IHubContext<TranslationHub> hubContext)
             : base(youTubeServices, speechServices, logger)
         {
@@ -28,11 +27,17 @@ namespace AzTranslate.WebApp.Pages
 
         public async Task<IActionResult> OnGetAsync(string youTubeUrl, string fromLanguage, IEnumerable<string> toLanguages)
         {
-            FromLanguage = fromLanguage;
-            ToLanguages = toLanguages.FirstOrDefault();
+            var previousOriginalTranscriptLine = string.Empty;
 
-            var org = new StringBuilder();
-            var trn = new StringBuilder();
+            var fromLanguageName = speechServices.GetSpeechLanguageNameByCode(fromLanguage);
+            WorkingLanguages = new Dictionary<string, string>();
+            WorkingLanguages.Add(fromLanguage, fromLanguageName);
+
+            foreach (var language in toLanguages)
+            {
+                var toLanguageName = speechServices.GetTranslationLanguageNameByCode(language);
+                WorkingLanguages.Add(language, toLanguageName);
+            }            
 
             speechServices.SpeechSessionStarted += async (s, e) =>
             {
@@ -61,11 +66,13 @@ namespace AzTranslate.WebApp.Pages
 
             speechServices.SpeechRecognized += async (s, e) =>
             {
-                org.AppendLine(e.OriginalTranscriptLine);
-                trn.AppendLine(e.TranslationTranscriptLine);
+                if (!string.Equals(e.OriginalTranscriptLine, previousOriginalTranscriptLine))
+                {
+                    await hubContext.Clients.All.SendAsync("ReceiveMessage", "transcript-list", e.OriginalTranscriptLine);
+                    previousOriginalTranscriptLine = e.OriginalTranscriptLine;
+                }
 
-                await hubContext.Clients.All.SendAsync("ReceiveMessage", "transcriptList", e.OriginalTranscriptLine);
-                await hubContext.Clients.All.SendAsync("ReceiveMessage", "translationList", e.TranslationTranscriptLine);
+                await hubContext.Clients.All.SendAsync("ReceiveMessage", $"translation-{e.TranslationLanguage.ToLower()}-list", e.TranslationTranscriptLine);
             };
 
             var video = await youTubeServices.GetVideoAsync(youTubeUrl);
