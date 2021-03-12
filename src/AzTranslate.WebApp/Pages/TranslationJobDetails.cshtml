@@ -1,6 +1,7 @@
 ﻿@page
 @model AzTranslate.WebApp.Pages.TranslationJobDetailsModel
 @{
+    ViewData["Title"] = "Translation Job Details";
 }
 
 <div class="row mb-3">
@@ -16,7 +17,7 @@
 </div>
 
 <div class="row">
-    <div class="col-6 mb-3">
+    <div class="col-sm-12 col-md-6 mb-3">
         <div class="card">
             <div class="card-header">
                 <b>Recognized Speech - @Model.WorkingLanguages.FirstOrDefault().Value</b>
@@ -30,11 +31,11 @@
     </div>
     @foreach (var toLanguage in Model.WorkingLanguages.Skip(1))
     {
-        <div class="col-6 mb-2">
+        <div class="col-sm-12 col-md-6 mb-2">
             <div class="card">
                 <div class="card-header">
                     <b>Translated Speech - @toLanguage.Value</b>
-                    <input type="button" value="Download" class="btn btn-primary float-right" 
+                    <input type="button" value="Download" class="btn btn-primary float-right"
                            onclick="saveFile('@($"translation-{toLanguage.Key.ToLower()}-list")')" />
                 </div>
                 <div class="card-body pre-scrollable">
