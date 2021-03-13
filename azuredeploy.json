@@ -2,23 +2,21 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "subscriptionId": {
-            "type": "string"
-        },
-        "resourceGroup": {
-            "type": "string"
-        },
-        "location": {
-            "type": "string"
-        },
         "speechServiceName": {
-            "type": "string"
+            "type": "string",
+            "defaultValue": "AzTranslate"
         },
         "speechServiceSku": {
-            "type": "string"
+            "type": "string",
+            "defaultValue": "F0",
+            "allowedValues": [
+                "F0",
+                "S0"
+            ]
         },
         "webAppName": {
-            "type": "string"
+            "type": "string",
+            "defaultValue": "AzTranslate"
         }
     },
     "variables": {
@@ -39,7 +37,7 @@
         {
             "apiVersion": "2017-04-18",
             "name": "[parameters('speechServiceName')]",
-            "location": "[parameters('location')]",
+            "location": "[resourceGroup().location]",
             "type": "Microsoft.CognitiveServices/accounts",
             "kind": "SpeechServices",
             "sku": {
@@ -52,7 +50,7 @@
             "apiVersion": "2018-11-01",
             "name": "[parameters('webAppName')]",
             "type": "Microsoft.Web/sites",
-            "location": "[parameters('location')]",
+            "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[concat('Microsoft.CognitiveServices/accounts/', parameters('speechServiceName'))]",
                 "[variables('appInsightId')]",
@@ -84,7 +82,7 @@
                         },
                         {
                             "name": "AzureSpeechTranslation:Region",
-                            "value": "[parameters('location')]"
+                            "value": "[resourceGroup().location]"
                         }
 
                     ],
@@ -98,7 +96,7 @@
                     "netFrameworkVersion": "[variables('netFrameworkVersion')]",
                     "alwaysOn": "[variables('alwaysOn')]"
                 },
-                "serverFarmId": "[concat('/subscriptions/', parameters('subscriptionId'),'/resourcegroups/', parameters('resourceGroup'), '/providers/Microsoft.Web/serverfarms/', variables('hostingPlanName'))]",
+                "serverFarmId": "[concat('/subscriptions/', subscription().id,'/resourcegroups/', resourceGroup().name, '/providers/Microsoft.Web/serverfarms/', variables('hostingPlanName'))]",
                 "clientAffinityEnabled": true
             }
         },
@@ -106,7 +104,7 @@
             "apiVersion": "2018-02-01",
             "name": "[variables('hostingPlanName')]",
             "type": "Microsoft.Web/serverfarms",
-            "location": "[parameters('location')]",
+            "location": "[resourceGroup().location]",
             "kind": "",
             "tags": {},
             "dependsOn": [],
@@ -125,7 +123,7 @@
             "apiVersion": "2020-02-02-preview",
             "name": "[variables('appInsight')]",
             "type": "microsoft.insights/components",
-            "location": "[parameters('location')]",
+            "location": "[resourceGroup().location]",
             "kind": "web",
             "properties": {
                 "Application_Type": "web"
