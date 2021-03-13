@@ -31,7 +31,8 @@
         "currentStack": "dotnet",
         "netFrameworkVersion": "v5.0",
         "appInsight": "[concat('insights-', parameters('webAppName'))]",
-        "appInsightId": "[concat('microsoft.insights/components/', variables('appInsight'))]"
+        "appInsightId": "[concat('microsoft.insights/components/', variables('appInsight'))]",
+        "repoUrl": "https://github.com/taqabubaker/AzTranslate.git"
     },
     "resources": [
         {
@@ -98,7 +99,24 @@
                 },
                 "serverFarmId": "[concat('/subscriptions/', subscription().id,'/resourcegroups/', resourceGroup().name, '/providers/Microsoft.Web/serverfarms/', variables('hostingPlanName'))]",
                 "clientAffinityEnabled": true
-            }
+            },
+            "resources": [
+                {
+                    "condition": "[contains(variables('repoUrl'),'https')]",
+                    "type": "sourcecontrols",
+                    "apiVersion": "2018-11-01",
+                    "name": "web",
+                    "location": "[resourceGroup().location]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Web/sites', parameters('webAppName'))]"
+                    ],
+                    "properties": {
+                        "repoUrl": "[variables('repoUrl')]",
+                        "branch": "master",
+                        "isManualIntegration": true
+                    }
+                }
+            ]
         },
         {
             "apiVersion": "2018-02-01",
@@ -129,11 +147,5 @@
                 "Application_Type": "web"
             }
         }
-    ],
-    "outputs": {
-        "SpeechInfo": {
-            "type": "object",
-            "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts/', parameters('speechServiceName')))]"
-        }
-    }
+    ]
 }
