@@ -105,7 +105,7 @@
                     "condition": "[contains(variables('repoUrl'),'https')]",
                     "type": "sourcecontrols",
                     "apiVersion": "2018-11-01",
-                    "name": "web",
+                    "name": "AzTranslate source code",
                     "location": "[resourceGroup().location]",
                     "dependsOn": [
                         "[resourceId('Microsoft.Web/sites', parameters('webAppName'))]"
