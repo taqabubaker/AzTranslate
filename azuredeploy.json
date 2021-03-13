@@ -32,7 +32,7 @@
         "netFrameworkVersion": "v5.0",
         "appInsight": "[concat('insights-', parameters('webAppName'))]",
         "appInsightId": "[concat('microsoft.insights/components/', variables('appInsight'))]",
-        "repoUrl": "https://github.com/taqabubaker/AzTranslate.git"
+        "repoUrl": "https://github.com/taqabubaker/AzTranslate"
     },
     "resources": [
         {
@@ -98,25 +98,25 @@
                     "alwaysOn": "[variables('alwaysOn')]"
                 },
                 "serverFarmId": "[concat('/subscriptions/', subscription().id,'/resourcegroups/', resourceGroup().name, '/providers/Microsoft.Web/serverfarms/', variables('hostingPlanName'))]",
-                "clientAffinityEnabled": true,
-                "resources": [
-                    {
-                        "condition": "[contains(variables('repoUrl'),'https')]",
-                        "type": "sourcecontrols",
-                        "apiVersion": "2018-11-01",
-                        "name": "AzTranslate source code",
-                        "location": "[resourceGroup().location]",
-                        "dependsOn": [
-                            "[resourceId('Microsoft.Web/sites', parameters('webAppName'))]"
-                        ],
-                        "properties": {
-                            "repoUrl": "[variables('repoUrl')]",
-                            "branch": "master",
-                            "isManualIntegration": true
-                        }
+                "clientAffinityEnabled": true
+            },
+            "resources": [
+                {
+                    "condition": "[contains(variables('repoUrl'),'http')]",
+                    "type": "sourcecontrols",
+                    "apiVersion": "2018-11-01",
+                    "name": "web",
+                    "location": "[resourceGroup().location]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Web/sites', parameters('webAppName'))]"
+                    ],
+                    "properties": {
+                        "repoUrl": "[variables('repoUrl')]",
+                        "branch": "master",
+                        "isManualIntegration": true
                     }
-                ]
-            }
+                }
+            ]
         },
         {
             "apiVersion": "2018-02-01",
