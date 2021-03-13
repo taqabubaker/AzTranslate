@@ -1,0 +1,141 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "subscriptionId": {
+            "type": "string"
+        },
+        "resourceGroup": {
+            "type": "string"
+        },
+        "location": {
+            "type": "string"
+        },
+        "speechServiceName": {
+            "type": "string"
+        },
+        "speechServiceSku": {
+            "type": "string"
+        },
+        "webAppName": {
+            "type": "string"
+        }
+    },
+    "variables": {
+        "hostingPlanName": "[concat(parameters('webAppName'), 'hostingPlan')]",
+        "alwaysOn": false,
+        "webAppsku": "Free",
+        "webAppskuCode": "F1",
+        "phpVersion": "OFF",
+        "workerSize": "0",
+        "workerSizeId": "0",
+        "numberOfWorkers": "1",
+        "currentStack": "dotnet",
+        "netFrameworkVersion": "v5.0",
+        "appInsight": "[concat('insights-', parameters('webAppName'))]",
+        "appInsightId": "[concat('microsoft.insights/components/', variables('appInsight'))]"
+    },
+    "resources": [
+        {
+            "apiVersion": "2017-04-18",
+            "name": "[parameters('speechServiceName')]",
+            "location": "[parameters('location')]",
+            "type": "Microsoft.CognitiveServices/accounts",
+            "kind": "SpeechServices",
+            "sku": {
+                "name": "[parameters('speechServiceSku')]"
+            },
+            "properties": {
+            }
+        },
+        {
+            "apiVersion": "2018-11-01",
+            "name": "[parameters('webAppName')]",
+            "type": "Microsoft.Web/sites",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.CognitiveServices/accounts/', parameters('speechServiceName'))]",
+                "[variables('appInsightId')]",
+                "[concat('Microsoft.Web/serverfarms/', variables('hostingPlanName'))]"
+            ],
+            "properties": {
+                "name": "[parameters('webAppName')]",
+                "siteConfig": {
+                    "appSettings": [
+                        {
+                            "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+                            "value": "[reference(variables('appInsightId'), '2015-05-01').InstrumentationKey]"
+                        },
+                        {
+                            "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+                            "value": "[reference(variables('appInsightId'), '2015-05-01').ConnectionString]"
+                        },
+                        {
+                            "name": "ApplicationInsightsAgent_EXTENSION_VERSION",
+                            "value": "~2"
+                        },
+                        {
+                            "name": "XDT_MicrosoftApplicationInsights_Mode",
+                            "value": "default"
+                        },
+                        {
+                            "name": "AzureSpeechTranslation:SubscriptionKey",
+                            "value": ""
+                        },
+                        {
+                            "name": "AzureSpeechTranslation:Region",
+                            "value": "[parameters('location')]"
+                        }
+
+                    ],
+                    "metadata": [
+                        {
+                            "name": "CURRENT_STACK",
+                            "value": "[variables('currentStack')]"
+                        }
+                    ],
+                    "phpVersion": "[variables('phpVersion')]",
+                    "netFrameworkVersion": "[variables('netFrameworkVersion')]",
+                    "alwaysOn": "[variables('alwaysOn')]"
+                },
+                "serverFarmId": "[concat('/subscriptions/', parameters('subscriptionId'),'/resourcegroups/', parameters('resourceGroup'), '/providers/Microsoft.Web/serverfarms/', variables('hostingPlanName'))]",
+                "clientAffinityEnabled": true
+            }
+        },
+        {
+            "apiVersion": "2018-02-01",
+            "name": "[variables('hostingPlanName')]",
+            "type": "Microsoft.Web/serverfarms",
+            "location": "[parameters('location')]",
+            "kind": "",
+            "tags": {},
+            "dependsOn": [],
+            "properties": {
+                "name": "[variables('hostingPlanName')]",
+                "workerSize": "[variables('workerSize')]",
+                "workerSizeId": "[variables('workerSizeId')]",
+                "numberOfWorkers": "[variables('numberOfWorkers')]"
+            },
+            "sku": {
+                "Tier": "[variables('webAppsku')]",
+                "Name": "[variables('webAppskuCode')]"
+            }
+        },
+        {
+            "apiVersion": "2020-02-02-preview",
+            "name": "[variables('appInsight')]",
+            "type": "microsoft.insights/components",
+            "location": "[parameters('location')]",
+            "kind": "web",
+            "properties": {
+                "Application_Type": "web"
+            }
+        }
+    ],
+    "outputs": {
+        "SpeechInfo": {
+            "type": "object",
+            "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts/', parameters('speechServiceName')))]"
+        }
+    }
+}
