@@ -341,3 +341,4 @@ healthchecksdb
 
 # Output folder and its contents
 Output/
+/.vscode
