@@ -24,15 +24,13 @@
         "alwaysOn": false,
         "webAppsku": "Free",
         "webAppskuCode": "F1",
-        "phpVersion": "OFF",
         "workerSize": "0",
         "workerSizeId": "0",
         "numberOfWorkers": "1",
-        "currentStack": "dotnet",
-        "netFrameworkVersion": "v5.0",
-        "appInsight": "[concat('insights-', parameters('webAppName'))]",
-        "appInsightId": "[concat('microsoft.insights/components/', variables('appInsight'))]",
-        "repoUrl": "https://github.com/taqabubaker/AzTranslate"
+        "dockerImageName": "tariqabuaker/aztranslate:latest",
+        "dockerRegistryUrl": "https://index.docker.io",
+        "dockerRegistryStartupCommand": 
+        "[concat('-e ASPNETCORE_AzureSpeechTranslation__Region=',resourceGroup().location,' -e ASPNETCORE_AzureSpeechTranslation__SubscriptionKey=')]"
     },
     "resources": [
         {
@@ -52,9 +50,9 @@
             "name": "[parameters('webAppName')]",
             "type": "Microsoft.Web/sites",
             "location": "[resourceGroup().location]",
+            "tags": {},
             "dependsOn": [
                 "[concat('Microsoft.CognitiveServices/accounts/', parameters('speechServiceName'))]",
-                "[variables('appInsightId')]",
                 "[concat('Microsoft.Web/serverfarms/', variables('hostingPlanName'))]"
             ],
             "properties": {
@@ -62,89 +60,48 @@
                 "siteConfig": {
                     "appSettings": [
                         {
-                            "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
-                            "value": "[reference(variables('appInsightId'), '2015-05-01').InstrumentationKey]"
+                            "name": "DOCKER_REGISTRY_SERVER_URL",
+                            "value": "[variables('dockerRegistryUrl')]"
                         },
                         {
-                            "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
-                            "value": "[reference(variables('appInsightId'), '2015-05-01').ConnectionString]"
-                        },
-                        {
-                            "name": "ApplicationInsightsAgent_EXTENSION_VERSION",
-                            "value": "~2"
-                        },
-                        {
-                            "name": "XDT_MicrosoftApplicationInsights_Mode",
-                            "value": "default"
-                        },
-                        {
-                            "name": "AzureSpeechTranslation:SubscriptionKey",
+                            "name": "DOCKER_REGISTRY_SERVER_USERNAME",
                             "value": ""
                         },
                         {
-                            "name": "AzureSpeechTranslation:Region",
-                            "value": "[resourceGroup().location]"
-                        }
-
-                    ],
-                    "metadata": [
+                            "name": "DOCKER_REGISTRY_SERVER_PASSWORD",
+                            "value": ""
+                        },
                         {
-                            "name": "CURRENT_STACK",
-                            "value": "[variables('currentStack')]"
+                            "name": "WEBSITES_ENABLE_APP_SERVICE_STORAGE",
+                            "value": "false"
                         }
                     ],
-                    "phpVersion": "[variables('phpVersion')]",
-                    "netFrameworkVersion": "[variables('netFrameworkVersion')]",
+                    "linuxFxVersion": "[concat('DOCKER|', variables('dockerImageName'))]",
+                    "appCommandLine": "[variables('dockerRegistryStartupCommand')]",
                     "alwaysOn": "[variables('alwaysOn')]"
                 },
                 "serverFarmId": "[concat('/subscriptions/', subscription().id,'/resourcegroups/', resourceGroup().name, '/providers/Microsoft.Web/serverfarms/', variables('hostingPlanName'))]",
-                "clientAffinityEnabled": true
-            },
-            "resources": [
-                {
-                    "condition": "[contains(variables('repoUrl'),'http')]",
-                    "type": "sourcecontrols",
-                    "apiVersion": "2018-11-01",
-                    "name": "web",
-                    "location": "[resourceGroup().location]",
-                    "dependsOn": [
-                        "[resourceId('Microsoft.Web/sites', parameters('webAppName'))]"
-                    ],
-                    "properties": {
-                        "repoUrl": "[variables('repoUrl')]",
-                        "branch": "master",
-                        "isManualIntegration": true
-                    }
-                }
-            ]
+                "clientAffinityEnabled": false
+            }
         },
         {
-            "apiVersion": "2018-02-01",
+            "apiVersion": "2018-11-01",
             "name": "[variables('hostingPlanName')]",
             "type": "Microsoft.Web/serverfarms",
             "location": "[resourceGroup().location]",
-            "kind": "",
+            "kind": "linux",
             "tags": {},
             "dependsOn": [],
             "properties": {
                 "name": "[variables('hostingPlanName')]",
                 "workerSize": "[variables('workerSize')]",
                 "workerSizeId": "[variables('workerSizeId')]",
-                "numberOfWorkers": "[variables('numberOfWorkers')]"
+                "numberOfWorkers": "[variables('numberOfWorkers')]",
+                "reserved": true
             },
             "sku": {
                 "Tier": "[variables('webAppsku')]",
                 "Name": "[variables('webAppskuCode')]"
-            }
-        },
-        {
-            "apiVersion": "2020-02-02-preview",
-            "name": "[variables('appInsight')]",
-            "type": "microsoft.insights/components",
-            "location": "[resourceGroup().location]",
-            "kind": "web",
-            "properties": {
-                "Application_Type": "web"
             }
         }
     ]

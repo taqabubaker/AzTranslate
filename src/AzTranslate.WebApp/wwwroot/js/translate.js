@@ -2,8 +2,8 @@
 
 var connection = new signalR.HubConnectionBuilder().withUrl("/translationhub").build();
 
-connection.on("ReceiveMessage", function (listName, message) {
-    let msgLines = message.split("\r\n");
+connection.on("ReceiveMessage", function (listName, message, lineSpliter) {
+    let msgLines = message.split(lineSpliter);
     msgLines.forEach(function (line) {
         let li = document.createElement("li");
 

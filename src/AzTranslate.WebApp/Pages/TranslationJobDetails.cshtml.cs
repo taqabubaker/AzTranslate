@@ -41,38 +41,38 @@ namespace AzTranslate.WebApp.Pages
 
             speechServices.SpeechSessionStarted += async (s, e) =>
             {
-                await hubContext.Clients.All.SendAsync("ReceiveMessage", "logList", e.Information);
+                await hubContext.Clients.All.SendAsync("ReceiveMessage", "logList", e.Information, Environment.NewLine);
             };
 
             speechServices.SpeechSessionStopped += async (s, e) =>
             {
-                await hubContext.Clients.All.SendAsync("ReceiveMessage", "logList", e.Information);
+                await hubContext.Clients.All.SendAsync("ReceiveMessage", "logList", e.Information, Environment.NewLine);
             };
 
             speechServices.SpeechCanceled += async (s, e) =>
             {
-                await hubContext.Clients.All.SendAsync("ReceiveMessage", "logList", e.Information);
+                await hubContext.Clients.All.SendAsync("ReceiveMessage", "logList", e.Information, Environment.NewLine);
             };
 
             speechServices.SpeechEndDetected += async (s, e) =>
             {
-                await hubContext.Clients.All.SendAsync("ReceiveMessage", "logList", e.Information);
+                await hubContext.Clients.All.SendAsync("ReceiveMessage", "logList", e.Information, Environment.NewLine);
             };
 
             speechServices.SpeechStartDetected += async (s, e) =>
             {
-                await hubContext.Clients.All.SendAsync("ReceiveMessage", "logList", e.Information);
+                await hubContext.Clients.All.SendAsync("ReceiveMessage", "logList", e.Information, Environment.NewLine);
             };
 
             speechServices.SpeechRecognized += async (s, e) =>
             {
                 if (!string.Equals(e.OriginalTranscriptLine, previousOriginalTranscriptLine))
                 {
-                    await hubContext.Clients.All.SendAsync("ReceiveMessage", "transcript-list", e.OriginalTranscriptLine);
+                    await hubContext.Clients.All.SendAsync("ReceiveMessage", "transcript-list", e.OriginalTranscriptLine, Environment.NewLine);
                     previousOriginalTranscriptLine = e.OriginalTranscriptLine;
                 }
 
-                await hubContext.Clients.All.SendAsync("ReceiveMessage", $"translation-{e.TranslationLanguage.ToLower()}-list", e.TranslationTranscriptLine);
+                await hubContext.Clients.All.SendAsync("ReceiveMessage", $"translation-{e.TranslationLanguage.ToLower()}-list", e.TranslationTranscriptLine, Environment.NewLine);
             };
 
             var video = await youTubeServices.GetVideoAsync(youTubeUrl);
