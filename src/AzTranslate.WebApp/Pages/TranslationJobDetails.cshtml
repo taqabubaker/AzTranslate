@@ -4,6 +4,7 @@
     ViewData["Title"] = "Translation Job Details";
 }
 
+@Html.AntiForgeryToken()
 <div class="row mb-3">
     <div class="col">
         <div class="card">
@@ -50,4 +51,24 @@
 @section Scripts{
     <script src="~/lib/microsoft/signalr/dist/browser/signalr.js"></script>
     <script src="~/js/translate.js"></script>
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+
+            var token = $('input[name="__RequestVerificationToken"]').val();
+
+            $.post("/TranslationJobDetails",
+                {
+                    youTubeUrl: '@Model.YouTubeUrl',
+                    fromLanguage: '@Model.WorkingLanguages.Keys.First()',
+                    toLanguages: @Html.Raw(@System.Text.Json.JsonSerializer.Serialize(Model.WorkingLanguages.Keys.Skip(1))),
+                    __RequestVerificationToken: token
+                }).fail(function (xhr, status, error) {
+                    let err = "Translation request failed!\n";
+                    err = err.concat("Status: ", status, "\n");
+                    err = err.concat("Error: ", error, "\n");
+                    logMessage("logList", err, "\n");
+                });
+        });
+    </script>
 }

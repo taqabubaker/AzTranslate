@@ -3,24 +3,7 @@
 var connection = new signalR.HubConnectionBuilder().withUrl("/translationhub").build();
 
 connection.on("ReceiveMessage", function (listName, message, lineSpliter) {
-    let msgLines = message.split(lineSpliter);
-    msgLines.forEach(function (line) {
-        let li = document.createElement("li");
-
-        if (line === "") {
-            let p = document.createElement("p");
-            li.appendChild(p);
-        }
-        else {
-            li.textContent = line;
-        }
-
-        let list = document.getElementById(listName);
-        list.appendChild(li);
-
-        let div = $(list).parent(".pre-scrollable");
-        $(div).scrollTop($(div)[0].scrollHeight);
-    });
+    logMessage(listName, message, lineSpliter);
 });
 
 connection.start().catch(function (err) {
