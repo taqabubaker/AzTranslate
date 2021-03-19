@@ -1,0 +1,108 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "speechServiceName": {
+            "type": "string",
+            "defaultValue": "AzTranslate"
+        },
+        "speechServiceSku": {
+            "type": "string",
+            "defaultValue": "F0",
+            "allowedValues": [
+                "F0",
+                "S0"
+            ]
+        },
+        "webAppName": {
+            "type": "string",
+            "defaultValue": "AzTranslate"
+        }
+    },
+    "variables": {
+        "hostingPlanName": "[concat(parameters('webAppName'), 'hostingPlan')]",
+        "alwaysOn": false,
+        "webAppsku": "Free",
+        "webAppskuCode": "F1",
+        "workerSize": "0",
+        "workerSizeId": "0",
+        "numberOfWorkers": "1",
+        "dockerImageName": "tariqabuaker/aztranslate:latest",
+        "dockerRegistryUrl": "https://index.docker.io",
+        "dockerRegistryStartupCommand": 
+        "[format('-e AzureSpeechTranslation:Region={0} -e AzureSpeechTranslation:SubscriptionKey=',resourceGroup().location)]"
+    },
+    "resources": [
+        {
+            "apiVersion": "2017-04-18",
+            "name": "[parameters('speechServiceName')]",
+            "location": "[resourceGroup().location]",
+            "type": "Microsoft.CognitiveServices/accounts",
+            "kind": "SpeechServices",
+            "sku": {
+                "name": "[parameters('speechServiceSku')]"
+            },
+            "properties": {
+            }
+        },
+        {
+            "apiVersion": "2018-11-01",
+            "name": "[parameters('webAppName')]",
+            "type": "Microsoft.Web/sites",
+            "location": "[resourceGroup().location]",
+            "tags": {},
+            "dependsOn": [
+                "[concat('Microsoft.CognitiveServices/accounts/', parameters('speechServiceName'))]",
+                "[concat('Microsoft.Web/serverfarms/', variables('hostingPlanName'))]"
+            ],
+            "properties": {
+                "name": "[parameters('webAppName')]",
+                "siteConfig": {
+                    "appSettings": [
+                        {
+                            "name": "DOCKER_REGISTRY_SERVER_URL",
+                            "value": "[variables('dockerRegistryUrl')]"
+                        },
+                        {
+                            "name": "DOCKER_REGISTRY_SERVER_USERNAME",
+                            "value": ""
+                        },
+                        {
+                            "name": "DOCKER_REGISTRY_SERVER_PASSWORD",
+                            "value": ""
+                        },
+                        {
+                            "name": "WEBSITES_ENABLE_APP_SERVICE_STORAGE",
+                            "value": "false"
+                        }
+                    ],
+                    "linuxFxVersion": "[concat('DOCKER|', variables('dockerImageName'))]",
+                    "appCommandLine": "[variables('dockerRegistryStartupCommand')]",
+                    "alwaysOn": "[variables('alwaysOn')]"
+                },
+                "serverFarmId": "[concat('/subscriptions/', subscription().id,'/resourcegroups/', resourceGroup().name, '/providers/Microsoft.Web/serverfarms/', variables('hostingPlanName'))]",
+                "clientAffinityEnabled": false
+            }
+        },
+        {
+            "apiVersion": "2018-11-01",
+            "name": "[variables('hostingPlanName')]",
+            "type": "Microsoft.Web/serverfarms",
+            "location": "[resourceGroup().location]",
+            "kind": "linux",
+            "tags": {},
+            "dependsOn": [],
+            "properties": {
+                "name": "[variables('hostingPlanName')]",
+                "workerSize": "[variables('workerSize')]",
+                "workerSizeId": "[variables('workerSizeId')]",
+                "numberOfWorkers": "[variables('numberOfWorkers')]",
+                "reserved": true
+            },
+            "sku": {
+                "Tier": "[variables('webAppsku')]",
+                "Name": "[variables('webAppskuCode')]"
+            }
+        }
+    ]
+}
