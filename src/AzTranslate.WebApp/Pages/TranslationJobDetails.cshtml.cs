@@ -15,6 +15,7 @@ namespace AzTranslate.WebApp.Pages
 {
     public class TranslationJobDetailsModel : PageModelBase<TranslationJobDetailsModel>
     {
+        public string YouTubeUrl { get; set; }
         public Dictionary<string, string> WorkingLanguages { get; set; }
         private readonly IHubContext<TranslationHub> hubContext;
 
@@ -25,9 +26,9 @@ namespace AzTranslate.WebApp.Pages
             this.hubContext = hubContext;
         }
 
-        public async Task<IActionResult> OnGetAsync(string youTubeUrl, string fromLanguage, IEnumerable<string> toLanguages)
+        public IActionResult OnGet(string youTubeUrl, string fromLanguage, IEnumerable<string> toLanguages)
         {
-            var previousOriginalTranscriptLine = string.Empty;
+            YouTubeUrl = youTubeUrl;
 
             var fromLanguageName = speechServices.GetSpeechLanguageNameByCode(fromLanguage);
             WorkingLanguages = new Dictionary<string, string>();
@@ -37,7 +38,14 @@ namespace AzTranslate.WebApp.Pages
             {
                 var toLanguageName = speechServices.GetTranslationLanguageNameByCode(language);
                 WorkingLanguages.Add(language, toLanguageName);
-            }            
+            }
+
+            return Page();
+        }
+
+        public async Task<JsonResult> OnPostAsync(string youTubeUrl, string fromLanguage, IEnumerable<string> toLanguages)
+        {
+            var previousOriginalTranscriptLine = string.Empty;
 
             speechServices.SpeechSessionStarted += async (s, e) =>
             {
@@ -77,9 +85,9 @@ namespace AzTranslate.WebApp.Pages
 
             var video = await youTubeServices.GetVideoAsync(youTubeUrl);
 
-            _ = speechServices.TranslateAsync(video.YouTubeVideo, fromLanguage, toLanguages);
+            await speechServices.TranslateAsync(video.YouTubeVideo, fromLanguage, toLanguages);
 
-            return Page();
+            return new JsonResult("Finished Translation.");
         }
     }
 }

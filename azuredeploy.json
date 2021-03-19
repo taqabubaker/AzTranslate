@@ -30,7 +30,7 @@
         "dockerImageName": "tariqabuaker/aztranslate:latest",
         "dockerRegistryUrl": "https://index.docker.io",
         "dockerRegistryStartupCommand": 
-        "[concat('-e ASPNETCORE_AzureSpeechTranslation__Region=',resourceGroup().location,' -e ASPNETCORE_AzureSpeechTranslation__SubscriptionKey=')]"
+        "[format('-e AzureSpeechTranslation:Region={0} -e AzureSpeechTranslation:SubscriptionKey=',resourceGroup().location)]"
     },
     "resources": [
         {
