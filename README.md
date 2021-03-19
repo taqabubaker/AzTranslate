@@ -3,6 +3,8 @@ AzTranslate is an application to translate your YouTube videos using Azure speec
 
 *Note: this solution is not the prettiest solution you will see in terms of design and code. I just made it to overcome a problem I'm facing while transcribing and translating my YouTube videos.*
 
+[![Build Dockerfile and push the image to DockerHub](https://github.com/taqabubaker/AzTranslate/actions/workflows/build-dockerfile.yml/badge.svg?branch=master)](https://github.com/taqabubaker/AzTranslate/actions/workflows/build-dockerfile.yml)
+
 # Deployment
 You can click on below **Deploy to Azure** button to deploy the solution to your Azure subscription.
 
