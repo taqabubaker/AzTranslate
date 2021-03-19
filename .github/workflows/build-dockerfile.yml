@@ -20,8 +20,7 @@ on:
   workflow_dispatch:
   
 jobs:
-  build:
-    # The type of runner that the job will run on
+  dockerfile-build-push:
     runs-on: ubuntu-latest
     steps:
      - name: Checkout code
