@@ -39,6 +39,7 @@ jobs:
        uses: docker/build-push-action@v2
        with:
         context: .
+        push: true
         cache-from: type=registry,ref=tariqabuaker/aztranslate:latest
         cache-to: type=inline
         tags: tariqabuaker/aztranslate:latest
