@@ -1,0 +1,45 @@
+# This is a basic workflow to help you get started with Actions
+name: Build Dockerfile and push the image to DockerHub
+
+# Controls when the action will run. 
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch ignoring any changes happen to /docs or README.md
+  push:
+    branches: [ master ]
+    paths-ignore:
+    - "/docs"
+    - "README.md"
+    
+  pull_request:
+    branches: [ master ]
+    paths-ignore:
+    - "/docs"
+    - "README.md"
+    
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+  
+jobs:
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+    steps:
+     - name: Checkout code
+       uses: actions/checkout@v2
+     
+     - name: Set up Docker Buildx
+       uses: docker/setup-buildx-action@v1
+     
+     - name: Login to DockerHub
+       uses: docker/login-action@v1
+       with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+        
+     - name: Build and push
+       uses: docker/build-push-action@v2
+       with:
+        context: .
+        cache-from: type=registry,ref=tariqabuaker/aztranslate:latest
+        cache-to: type=inline
+        tags: tariqabuaker/aztranslate:latest
