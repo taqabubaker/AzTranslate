@@ -24,8 +24,7 @@ namespace AzTranslate.Services.Dtos
             
             YouTubeVideoInfo = new YouTubeVideoInfo(this.youTubeVideo.Info.Title, 
                 this.youTubeVideo.Info.LengthSeconds, 
-                this.youTubeVideo.Info.Author, 
-                this.youTubeVideo.Is3D, 
+                this.youTubeVideo.Info.Author,
                 this.youTubeVideo.Resolution,
                 this.youTubeVideo.Format);
         }
@@ -53,10 +52,9 @@ namespace AzTranslate.Services.Dtos
         public int Resolution { get; private set; }
         public VideoFormat VideoFormat { get; private set; }
 
-        public YouTubeVideoInfo(string title, int? second, string author, bool is3d, int resolution, VideoFormat videoFormat)
+        public YouTubeVideoInfo(string title, int? second, string author, int resolution, VideoFormat videoFormat)
             : base(title, second, author)
         {
-            this.Is3D = is3d;
             this.Resolution = resolution;
             this.VideoFormat = videoFormat;
         }
